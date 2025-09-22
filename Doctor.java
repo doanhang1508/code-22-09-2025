@@ -15,7 +15,7 @@ public class Doctor {
     private int availability;
 
     public Doctor(String code, String name, String specialization, int availability) {
-        this.code = code;
+        this.code = code.replaceAll("\\s+", "").toUpperCase();
         this.name = name;
         this.specialization = specialization;
         this.availability = availability;
