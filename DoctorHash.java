@@ -1,131 +1,118 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
  */
 package doctor_manager;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.Scanner;
 
 /**
  *
  * @author Thanh Hang
  */
-public class DoctorHash {
-
-    private HashMap<String, Doctor> doctors;
-
-    public DoctorHash() {
-        doctors = new HashMap<>();
-    }
+public class Doctor_Manager {
 
     /**
-     * Thêm một bác sĩ mới
+     * @param args the command line arguments
      */
-    public boolean addDoctor(Doctor doctor) throws Exception {
-        if (doctors == null) {
-            throw new Exception("Database does not exist");
-        }
-        if (doctor == null) {
-            throw new Exception("Data does not exist");
-        }
-        if (doctors.containsKey(doctor.getCode())) {
-            throw new Exception("Doctor code " + doctor.getCode() + " is duplicate");
-        }
-        if (doctor.getAvailability() < 0) {
-            throw new Exception("Availability must be >= 0");
-        }
+    private static Scanner sc = new Scanner(System.in);
 
-        doctors.put(doctor.getCode(), doctor);
-        return true;
-    }
+    private static DoctorHash dh = new DoctorHash();
 
-    /**
-     * Cập nhật thông tin bác sĩ
-     */
-    public boolean updateDoctor(Doctor doctor) throws Exception {
-        if (doctors == null) {
-            throw new Exception("Database does not exist");
-        }
-        if (doctor == null) {
-            throw new Exception("Data doesn't exist");
-        }
-        if (!doctors.containsKey(doctor.getCode())) {
-            throw new Exception("Doctor code doesn’t exist");
-        }
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("\nDOCTOR MANAGEMENT PROGRAM");
+            System.out.println("1. Add Doctor");
+            System.out.println("2. Update Doctor");
+            System.out.println("3. Delete Doctor");
+            System.out.println("4. Search Doctor");
+            System.out.println("5. Exit");
+            System.out.print("Choose: ");
 
-        Doctor existing = doctors.get(doctor.getCode());
-        if (doctor.getName() != null && !doctor.getName().trim().isEmpty()) {
-            existing.setName(doctor.getName());
-        }
-        if (doctor.getSpecialization() != null && !doctor.getSpecialization().trim().isEmpty()) {
-            existing.setSpecialization(doctor.getSpecialization());
-        }
-        if (doctor.getAvailability() >= 0) {
-            existing.setAvailability(doctor.getAvailability());
-        }
-        doctors.put(existing.getCode(), existing);
-        return true;
-    }
-
-    /**
-     * Xóa thông tin bác sĩ
-     */
-    public boolean deleteDoctor(Doctor doctor) throws Exception {
-        if (doctors == null) {
-            throw new Exception("Database does not exist");
-        }
-        if (doctor == null) {
-            throw new Exception("Data doesn't exist");
-        }
-        if (!doctors.containsKey(doctor.getCode())) {
-            throw new Exception("Doctor code doesn’t exist");
-        }
-
-        doctors.remove(doctor.getCode());
-        return true;
-    }
-
-    /**
-     * Tìm kiếm bác sĩ theo từ khóa
-     */
-    public HashMap<String, Doctor> searchDoctor(String input) throws Exception {
-        if (doctors == null) {
-            throw new Exception("Database does not exist");
-        }
-        HashMap<String, Doctor> result = new HashMap<>();
-        for (String key : doctors.keySet()) {
-            Doctor d = doctors.get(key);
-            if (d.getCode().toLowerCase().contains(input.toLowerCase())
-                    || d.getName().toLowerCase().contains(input.toLowerCase())
-                    || d.getSpecialization().toLowerCase().contains(input.toLowerCase())) {
-                result.put(d.getCode(), d);
+            int choice = Integer.parseInt(sc.nextLine().trim());
+            try {
+                switch (choice) {
+                    case 1: addDoctorUI(); break;
+                    case 2: updateDoctorUI(); break;
+                    case 3: deleteDoctorUI(); break;
+                    case 4: searchDoctorUI(); break;
+                    case 5:
+                        System.out.println("Goodbye!");
+                        return;
+                    default:
+                        System.out.println("Invalid choice!");
+                }
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
             }
         }
-        return result;
     }
 
-    /**
-     * Hiển thị toàn bộ danh sách bác sĩ
-     */
-    public void displayAll() {
-        if (doctors.isEmpty()) {
-            System.out.println("No doctors available.");
+    private static void addDoctorUI() throws Exception {
+        String code;
+        while (true) {
+        code = Validation.inputString("Enter code: ", "[A-Za-z0-9]+").trim().toUpperCase();
+        if (dh.getDoctors().containsKey(code)) {
+            System.out.println("Doctor code " + code + " already exists. Please enter another one.");
         } else {
-            List<Doctor> list = new ArrayList<>(doctors.values());
-            list.sort(Comparator.comparing(Doctor::getCode)); // sắp xếp theo Code
+            break; // hợp lệ, thoát khỏi vòng lặp
+        }
+    }
+        String name = Validation.inputString("Enter name: ", "[\\p{L} ]+");
+        String specialization = Validation.inputString("Enter specialization: ", "[\\p{L} ]+");
+        int avail = Validation.inputInteger("Enter availability: ", 0, Integer.MAX_VALUE);
 
-            System.out.printf("%-10s %-15s %-20s %-12s\n",
-                    "Code", "Name", "Specialization", "Availability");
-            for (Doctor d : list) {
-                System.out.printf("%-10s %-15s %-20s %-12d\n",
-                        d.getCode(), d.getName(), d.getSpecialization(), d.getAvailability());
+        dh.addDoctor(new Doctor(code, name, specialization, avail));
+        System.out.println("Doctor added successfully!");
+    }
+
+    private static void updateDoctorUI() throws Exception {
+        String code = Validation.inputString("Enter code to update: ", "[A-Za-z0-9 ]+").trim().toUpperCase();
+        Doctor oldDoc = dh.getDoctors().get(code);
+        if (oldDoc == null) {
+            throw new Exception("Doctor code doesn’t exist");
+        }
+
+        System.out.print("Enter new name (blank to skip): ");
+        String name = sc.nextLine().trim();
+        if (!name.isEmpty()) oldDoc.setName(name);
+
+        System.out.print("Enter new specialization (blank to skip): ");
+        String spec = sc.nextLine().trim();
+        if (!spec.isEmpty()) oldDoc.setSpecialization(spec);
+
+        System.out.print("Enter new availability (blank to skip): ");
+        String avail= sc.nextLine().trim();
+        if (!avail.isEmpty()) {
+            int newAvail = Integer.parseInt(avail);
+            if (newAvail < 0) throw new Exception("Availability must be >= 0");
+            oldDoc.setAvailability(newAvail);
+        }
+
+        dh.updateDoctor(oldDoc);
+        System.out.println("Doctor updated successfully!");
+    }
+
+    private static void deleteDoctorUI() throws Exception {
+        String code = Validation.inputString("Enter code to delete: ", "[A-Za-z0-9 ]+").trim().toUpperCase();
+        Doctor delDoc = dh.getDoctors().get(code);
+        dh.deleteDoctor(delDoc);
+        System.out.println("Doctor deleted successfully!");
+    }
+
+    private static void searchDoctorUI() throws Exception {
+        String search = Validation.inputString("Enter keyword to search: ", "[A-Za-z0-9 ]+");
+        HashMap<String, Doctor> result = dh.searchDoctor(search);
+        if (result.isEmpty()) {
+            System.out.println("No doctor found.");
+        } else {
+            System.out.printf("%-10s%-20s%-20s%-5s\n", "Code", "Name", "Specialization", "Avail");
+            for (Doctor d : result.values()) {
+                System.out.println(d);
             }
         }
     }
-
 }
