@@ -2,70 +2,72 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package doctor_manager;
+package change.pkg2.pkg10.pkg16;
+
+import java.util.Scanner;
 
 /**
  *
  * @author Thanh Hang
  */
-import java.util.Scanner;
-
 public class Validation {
-         private static Scanner sc = new Scanner(System.in);
+    private static Scanner sc = new Scanner(System.in);
 
     /**
      * Nhập số nguyên trong khoảng [min, max]
      */
-    public static int inputInteger(String msg, int min, int max) {
-        while (true) {
-            try {
-                System.out.print(msg);
-                String line = sc.nextLine().trim();
-                int value = Integer.parseInt(line);
-                if (value < min || value > max) {
-                    System.out.println("Value must be between " + min + " and " + max);
-                } else {
-                    return value;
+    public static int inputInteger(String msg, int min, int max){
+        int input;
+        while(true){
+            try{
+                 System.out.println(msg);
+                input=Integer.parseInt(sc.nextLine().trim());
+                if(input<min||input>max){
+                    System.out.println("Invalid input!");
+                }else{
+                    return input;
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid number. Please try again.");
+            }catch(NumberFormatException e){
+                System.out.println("Please enter a number!");
             }
         }
     }
+    public static int parseCustom(String value, int base) {
+    value = value.trim().toUpperCase();
+    int result = 0;
 
-    /**
-     * Nhập chuỗi theo regex (ví dụ: cho phép cả khoảng trắng)
-     */
-    public static String inputString(String msg, String regex) {
-        while (true) {
-            System.out.print(msg);
+    for (int i = 0; i < value.length(); i++) {
+        char c = value.charAt(i);
+        int digit;
+
+        if (c >= '0' && c <= '9') {
+            digit = c - '0';
+        } else if (c >= 'A' && c <= 'Z') {
+            digit = 10 + (c - 'A');
+        } else {
+            throw new NumberFormatException("Ký tự không hợp lệ: " + c);
+        }
+
+        if (digit >= base) {
+            throw new NumberFormatException(
+                "Ký tự '" + c + "' không hợp lệ trong hệ cơ số " + base
+            );
+        }
+
+        result = result * base + digit;
+    }
+
+    return result;
+}
+    public static String inputValue(String msg, int base){
+        while(true){
+            System.out.println(msg);
             String value = sc.nextLine().trim();
-            if (value.isEmpty()) {
-                System.out.println("Input cannot be empty.");
-            } else if (!value.matches(regex)) {
-                System.out.println("Invalid input format.");
-            } else {
+            try{
+                parseCustom(value, base);
                 return value;
-            }
-        }
-    }
-
-    /**
-     * Nhập availability (>= 0)
-     */
-    public static int inputAvailability(String msg) {
-        while (true) {
-            try {
-                System.out.print(msg);
-                String line = sc.nextLine().trim();
-                int value = Integer.parseInt(line);
-                if (value < 0) {
-                    System.out.println("Availability must be >= 0");
-                } else {
-                    return value;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid number. Please try again.");
+            }catch(NumberFormatException e){
+                System.out.println("Input not invalid in base " +base );
             }
         }
     }
