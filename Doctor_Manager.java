@@ -1,128 +1,102 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package doctor_manager;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
  * @author Thanh Hang
  */
-public class Doctor_Manager {
+public class DoctorHash {
+
+    private HashMap<String, Doctor> doctors;
+
+    public DoctorHash() {
+        doctors = new HashMap<>();
+    }
 
     /**
-     * @param args the command line arguments
+     * Thêm một bác sĩ mới
      */
-    private static Scanner sc = new Scanner(System.in);
+    public boolean addDoctor(Doctor doctor) throws Exception {
+        
+        
+        
 
-    public static void main(String[] args) {
-        DoctorHash db = new DoctorHash();
+        doctors.put(doctor.getCode(), doctor);
+        return true;
+    }
 
-        while (true) {
-            System.out.println("====Doctor Manager====");
-            System.out.println("1. Add Doctor");
-            System.out.println("2. Update Doctor");
-            System.out.println("3. Delete Doctor");
-            System.out.println("4. Serach Doctor");
-            System.out.println("5. Display");
-            System.out.println("6. Exit");
+    /**
+     * Cập nhật thông tin bác sĩ
+     */
+    public boolean updateDoctor(Doctor doctor) throws Exception {
+        
+        
+        doctors.replace(doctor.getCode(), doctor);
+        return true;
+    }
 
-            try {
-                int choice = Validation.inputInteger("Enter your choice: ", 1, 5);
-                switch (choice) {
-                    case 1:
-                        addDoctorUI(db);
-                        break;
-                    case 2:
-                        updateDoctorUI(db);
-                        break;
-                    case 3:
-                        deleteDoctorUI(db);
-                        break;
-                    case 4:
-                        searchDoctorUI(db);
-                        break;
-                    case 5:
-                        db.displayAll();
-                        break;
-                    case 6: 
-                        System.out.println("Exiting...");
-                        return;
-                }
-            } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
+    /**
+     * Xóa thông tin bác sĩ
+     */
+    public boolean deleteDoctor(Doctor doctor) throws Exception {
+         if (doctor == null) {
+        throw new Exception("Doctor doesn’t exist");
+    }
+        if (!doctors.containsKey(doctor.getCode())) {
+            throw new Exception("Doctor code doesn’t exist");
+        }
+
+        doctors.remove(doctor.getCode());
+        return true;
+    }
+
+    /**
+     * Tìm kiếm bác sĩ theo từ khóa
+     */
+    public HashMap<String, Doctor> searchDoctor(String input) throws Exception {
+        
+        HashMap<String, Doctor> result = new HashMap<>();
+        for (String key : doctors.keySet()) {
+            Doctor d = doctors.get(key);
+            if (d.getCode().toLowerCase().contains(input.toLowerCase())
+                    || d.getName().toLowerCase().contains(input.toLowerCase())
+                    || d.getSpecialization().toLowerCase().contains(input.toLowerCase())) {
+                result.put(d.getCode(), d);
             }
         }
-
+        return result;
     }
+    public HashMap<String, Doctor> getDoctors() {
+    return doctors;
+}
 
-    public static void addDoctorUI(DoctorHash db) throws Exception {
-        System.out.println("----Add Doctor----");
-        String code = Validation.inputString("Enter code: ", "[A-Za-z0-9 ]+");
-        String name = Validation.inputString("Enter name: ", "[\\p{L} ]+");
-        String spec = Validation.inputString("Enter Specialization: ", "[\\p{L} ]+");
-        int avail = Validation.inputAvailability("Enter Availability: ");
+    /**
+     * Hiển thị toàn bộ danh sách bác sĩ
+     */
+    public void displayAll() {
+        if (doctors.isEmpty()) {
+            System.out.println("No doctors available.");
+        } else {
+            List<Doctor> list = new ArrayList<>(doctors.values());
+            list.sort(Comparator.comparing(Doctor::getCode)); // sắp xếp theo Code
 
-        Doctor d = new Doctor(code, name, spec, avail);
-        db.addDoctor(d);
-        System.out.println("Doctor added successfully.");
-    }
-
-    public static void updateDoctorUI(DoctorHash db) throws Exception {
-        System.out.println("----Update Doctor----");
-        String code = Validation.inputString("Enter code: ", "[A-Za-z0-9 ]+");
-
-        System.out.println("Enter name: ");
-        String name = sc.nextLine();
-        if (!name.trim().isEmpty() && !name.matches("[\\p{L} ]+")) {
-            System.out.println("Invalid name. Keeping old name");
-            name = "";
-        }
-        System.out.println("Enter Specialization: ");
-        String spec = sc.nextLine();
-        if (!spec.trim().isEmpty() && !spec.matches("[\\p{L} ]+")) {
-            System.out.println("Invalid specialization. Keeping old specialization");
-            spec = "";
-        }
-        System.out.println("Enter Availability: ");
-        int avail = Integer.parseInt(sc.nextLine().trim());
-        try {
-            if (avail < 0) {
-                System.out.println("Invalid availability. Keeping old availability");
-                avail = -1;
-            }
-        } catch (NumberFormatException e) {
-            avail = -1;
-        }
-        Doctor d = new Doctor(code, name, spec, avail);
-        db.updateDoctor(d);
-        System.out.println("Doctor updated successfully.");
-    }
-    
-    public static void deleteDoctorUI(DoctorHash db) throws Exception{
-        System.out.println("----Delete Doctor----");
-        String code = Validation.inputString("Enter code: ", "[A-Za-z0-9 ]+");
-        Doctor d = new Doctor(code, null, null, 0);
-        db.deleteDoctor(d);
-        System.out.println("Doctor deleted successfully.");      
-    }
-    public static void searchDoctorUI(DoctorHash db) throws Exception{
-        System.out.println("----Search Doctor----");
-        String input = Validation.inputString("Enter text: ", ".+");
-        HashMap<String,Doctor> result = db.searchDoctor(input);
-        if(result.isEmpty()){
-            System.out.println("Not found.");
-        }else{
-            System.out.println("------Result--------");
-            System.out.printf("%-10s %-15s %-20s %-12s\n","Code", "Name", "Specializtion", "Availability");
-            for(Doctor d : result.values()){
-                System.out.printf("%-10s %-15s %-20s %-12s\n",d.getCode(), d.getName(), d.getSpecialization(), d.getAvailability());
+            System.out.printf("%-10s %-15s %-20s %-12s\n",
+                    "Code", "Name", "Specialization", "Availability");
+            for (Doctor d : list) {
+                System.out.printf("%-10s %-15s %-20s %-12d\n",
+                        d.getCode(), d.getName(), d.getSpecialization(), d.getAvailability());
             }
         }
     }
+
 }
